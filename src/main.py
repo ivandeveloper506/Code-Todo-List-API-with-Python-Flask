@@ -77,7 +77,7 @@ def register():
     
     user = User(email=data_request["email"], password=data_request["password"], is_active=data_request["is_active"])
 
-    try: 
+    try:
         db.session.add(user) 
         db.session.commit()
         
@@ -88,7 +88,7 @@ def register():
 
 # Protect a route with jwt_required, which will kick out requests
 # without a valid JWT present.
-@app.route("/protected", methods=["GET"])
+@app.route("/users/protected", methods=["GET"])
 @jwt_required()
 def protected():
     # Access the identity of the current user with get_jwt_identity
@@ -99,8 +99,8 @@ def protected():
 
 # INICIO - Definición de EndPoints para el Modelo User - INICIO
 # [GET] - Ruta para obtener todos los [user]
-@app.route('/user', methods=['GET'])
-# @jwt_required()
+@app.route('/users', methods=['GET'])
+@jwt_required()
 def indexUser():
 
     results = User.query.all()
@@ -108,14 +108,21 @@ def indexUser():
     return jsonify(list(map(lambda x: x.serialize(), results))), 200
 
 # [POST] - Ruta para crear un [user]
-@app.route('/user', methods=['POST'])
+@app.route('/users', methods=['POST'])
 @jwt_required()
 def storeUser():
 
     data_request = request.get_json()
+
+    user = User.query.filter_by(email=data_request["email"]).first()
+    
+    # Se valida que el email no haya sido registrado.
+    if user:
+        return jsonify({"msg": "El email ya fue registrado."}), 401
+    
     user = User(email=data_request["email"], password=data_request["password"], is_active=data_request["is_active"])
 
-    try: 
+    try:
         db.session.add(user) 
         db.session.commit()
         
@@ -123,18 +130,10 @@ def storeUser():
     
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
-
-# [PUT] - Ruta para modificar un [user]
-@app.route('/user/<int:id>', methods=['PUT'])
-@jwt_required()
-def updateUser(id):
-
-    user = User.query.get(id)
-
     if user is None:
         raise APIException('User is not found.',status_code=403)
 
-    data_request = request.get_json()
+s    data_request = request.get_json()
 
     user.password = data_request["password"]
     user.is_active = data_request["is_active"]
@@ -157,7 +156,7 @@ def deleteUser(id):
     if user is None:
         raise APIException('User is not found.',status_code=403)
 
-    try:
+s    try:
         db.session.delete(user)
         db.session.commit()
         
@@ -177,12 +176,19 @@ def indexTodo():
 
     return jsonify(list(map(lambda x: x.serialize(), results))), 200
 
-# [POST] - Ruta para crear un [todo]
+# [POST] - Ruta psara crear un [todo]
 @app.route('/todo', methods=['POST'])
 @jwt_required()
 def storeTodo():
 
     data_request = request.get_json()
+
+    if  data_request["label"] is None or data_request["label"] == '':
+         raise APIException('El label es requerido.',status_code=403)
+
+s    if  data_request["done"] is None or data_request["done"] == '':
+         raise APIException('El done es requerido.',status_code=403)
+
     todo = Todo(done=data_request["done"], label=data_request["label"])
 
     try: 
@@ -204,7 +210,7 @@ def updateTodo(id):
     if todo is None:
         raise APIException('Todo is not found.',status_code=403)
 
-    data_request = request.get_json()
+s    data_request = request.get_json()
 
     todo.done = data_request["done"]
     todo.label = data_request["label"]
@@ -227,7 +233,7 @@ def deleteTodo(id):
     if todo is None:
         raise APIException('Todo is not found.',status_code=403)
 
-    try:
+s    try:
         db.session.delete(todo)
         db.session.commit()
         

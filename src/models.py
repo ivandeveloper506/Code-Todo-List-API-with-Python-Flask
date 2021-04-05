@@ -19,8 +19,8 @@ class User(db.Model):
 
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    label = db.Column(db.String(250), nullable=False)
-    done = db.Column(db.Boolean(), nullable=False, default=False)
+    label = db.Column(db.String(250), nullable=False )
+    done = db.Column(db.Boolean(), nullable=False, default=False )
 
     def __repr__(self):
         return '<Todo %r>' % self.label
