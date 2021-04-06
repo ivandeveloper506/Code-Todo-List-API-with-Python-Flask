@@ -1,6 +1,3 @@
-"""
-This module takes care of starting the API Server, Loading the DB and Adding the endpoints
-"""
 import os
 import json
 from flask import Flask, request, jsonify, url_for
@@ -18,7 +15,7 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config["JWT_SECRET_KEY"] = "Secr3tKeyAppT10n-TodoList"
+app.config["JWT_SECRET_KEY"] = "Secr3tKeyAppT10nTodoList#123$456%789&"
 MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
@@ -49,16 +46,16 @@ def login():
     password = request.json.get("password", None)
 
     if email is None:
-        return jsonify({"msg": "No email was provided."}), 400
+        return jsonify({"msg": "El email es requerido."}), 400
 
     if password is None:
-        return jsonify({"msg": "No password was provided."}), 400
+        return jsonify({"msg": "El password es requerido."}), 400
     
     user = User.query.filter_by(email=email, password=password).first()
     
     if user is None:
         # the user was not found on the database
-        return jsonify({"msg": "Invalid email or password, no autorizado."}), 401
+        return jsonify({"msg": "El email o el password son invalidos."}), 401
     else:
         access_token = create_access_token(identity=user.id)
         return jsonify({ "token": access_token, "user_id": user.id }), 200
@@ -131,9 +128,9 @@ def storeUser():
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
     if user is None:
-        raise APIException('User is not found.',status_code=403)
+        raise APIException('El usuario con el id indicado, no fue encontrado.',status_code=403)
 
-s    data_request = request.get_json()
+    data_request = request.get_json()
 
     user.password = data_request["password"]
     user.is_active = data_request["is_active"]
@@ -147,20 +144,20 @@ s    data_request = request.get_json()
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
 
 # [DELETE] - Ruta para eliminar un [user]
-@app.route('/user/<int:id>', methods=['DELETE'])
+@app.route('/users/<int:id>', methods=['DELETE'])
 @jwt_required()
 def deleteUser(id):
 
     user = User.query.get(id)
 
     if user is None:
-        raise APIException('User is not found.',status_code=403)
+        raise APIException('El usuario con el id indicado, no fue encontrado.',status_code=403)
 
-s    try:
+    try:
         db.session.delete(user)
         db.session.commit()
         
-        return jsonify('User was successfully eliminated.'), 200
+        return jsonify('El usuario fue eliminado satisfactoriamente.'), 200
     
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
@@ -168,7 +165,7 @@ s    try:
 
 # INICIO - Definición de EndPoints para el Modelo Todo - INICIO
 # [GET] - Ruta para obtener todas las [todo]
-@app.route('/todo', methods=['GET'])
+@app.route('/todos', methods=['GET'])
 @jwt_required()
 def indexTodo():
 
@@ -177,7 +174,7 @@ def indexTodo():
     return jsonify(list(map(lambda x: x.serialize(), results))), 200
 
 # [POST] - Ruta psara crear un [todo]
-@app.route('/todo', methods=['POST'])
+@app.route('/todos', methods=['POST'])
 @jwt_required()
 def storeTodo():
 
@@ -186,7 +183,7 @@ def storeTodo():
     if  data_request["label"] is None or data_request["label"] == '':
          raise APIException('El label es requerido.',status_code=403)
 
-s    if  data_request["done"] is None or data_request["done"] == '':
+    if  data_request["done"] is None or data_request["done"] == '':
          raise APIException('El done es requerido.',status_code=403)
 
     todo = Todo(done=data_request["done"], label=data_request["label"])
@@ -200,44 +197,44 @@ s    if  data_request["done"] is None or data_request["done"] == '':
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
 
-# [PUT] - Ruta para modificar un [todo]
-@app.route('/todo/<int:id>', methods=['PUT'])
+# [PUT] - Ruta para modificar un [user]
+@app.route('/users/<int:id>', methods=['PUT'])
 @jwt_required()
-def updateTodo(id):
+def updateUser(id):
 
-    todo = Todo.query.get(id)
+    user = User.query.get(id)
 
-    if todo is None:
-        raise APIException('Todo is not found.',status_code=403)
+    if user is None:
+        raise APIException('El User con el id especificado, no fue encontrado.',status_code=403)
 
-s    data_request = request.get_json()
+    data_request = request.get_json()
 
-    todo.done = data_request["done"]
-    todo.label = data_request["label"]
+    user.password = data_request["password"]
+    user.is_active = data_request["is_active"]
 
     try: 
         db.session.commit()
         
-        return jsonify(Todo.serialize(todo)), 200
+        return jsonify(User.serialize(user)), 200
     
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
 
 # [DELETE] - Ruta para eliminar un [todo]
-@app.route('/todo/<int:id>', methods=['DELETE'])
+@app.route('/todos/<int:id>', methods=['DELETE'])
 @jwt_required()
 def deleteTodo(id):
 
     todo = Todo.query.get(id)
 
     if todo is None:
-        raise APIException('Todo is not found.',status_code=403)
+        raise APIException('El Todo con el id especificado, no fue encontrado.',status_code=403)
 
-s    try:
+    try:
         db.session.delete(todo)
         db.session.commit()
         
-        return jsonify('Todo was successfully eliminated.'), 200
+        return jsonify('El Todo fue eliminado satisfactoriamente.'), 200
     
     except AssertionError as exception_message: 
         return jsonify(msg='Error: {}. '.format(exception_message)), 400
